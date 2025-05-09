@@ -1,0 +1,15 @@
+// MiniBlog API 定义，包含健康检查、用户管理和文章管理的 RPC 接口
+syntax = "proto3";
+
+package v1;
+
+import "google/protobuf/empty.proto";       // 导入空消息
+import "apiserver/v1/healthz.proto";        // 健康检查消息定义
+
+option go_package = "github.com/jwcen/miniblog/pkg/api/apiserver/v1;v1";
+
+// MiniBlog 定义了一个 MiniBlog RPC 服务
+service MiniBlog {
+    // Healthz 健康检查
+    rpc Healthz(google.protobuf.Empty) returns (HealthzResponse) {}
+}
