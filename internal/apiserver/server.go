@@ -15,18 +15,18 @@
 package apiserver
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
+	"errors"
 	"net"
-	"os"
-	"os/signal"
-	"syscall"
+	"net/http"
 	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	genericoptions "github.com/onexstack/onexstack/pkg/options"
-	"github.com/spf13/viper"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	handler "github.com/jwcen/miniblog/internal/apiserver/handler/grpc"
 	"github.com/jwcen/miniblog/internal/pkg/log"
@@ -54,6 +54,7 @@ type Config struct {
 	JWTKey      string
 	Expiration  time.Duration
 	GRPCOptions *genericoptions.GRPCOptions
+	HTTPOptions *genericoptions.HTTPOptions
 }
 
 // UnionServer 定义一个联合服务器. 根据 ServerMode 决定要启动的服务器类型.
@@ -84,11 +85,7 @@ func (cfg *Config) NewUnionServer() (*UnionServer, error) {
 
 // Run 运行应用.
 func (s *UnionServer) Run() error {
-	log.Infow("ServerMode from ServerOptions", "jwt-key", s.cfg.JWTKey)
-	log.Infow("ServerMode from Viper", "jwt-key", viper.GetString("jwt-key"))
-
-	jsonData, _ := json.MarshalIndent(s.cfg, "", "  ")
-	fmt.Println(string(jsonData))
+	log.Infow("Start to listening the incoming requests on grpc address", "addr", s.cfg.GRPCOptions.Addr)
 
 	// 启动 gRPC 服务器
 	go func() {
@@ -98,13 +95,43 @@ func (s *UnionServer) Run() error {
 		}
 	}()
 
-	// 等待中断信号优雅地关闭服务器（设置 5 秒的超时时间）
-	quit := make(chan os.Signal, 1)
-	// 监听 SIGINT 和 SIGTERM 信号
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+	// 等待 gRPC 服务器启动
+	time.Sleep(time.Second)
 
-	fmt.Println("Shutting down server...")
-	s.srv.GracefulStop() // 优雅关闭 gRPC 服务器
+	dialOptions := []grpc.DialOption{
+		grpc.WithBlock(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	}
+
+	ctx := context.Background()
+	conn, err := grpc.Dial(s.cfg.GRPCOptions.Addr, dialOptions...)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	gwmux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{
+		MarshalOptions: protojson.MarshalOptions{
+			// 设置序列化 protobuf 数据时，枚举类型的字段以数字格式输出.
+			// 否则，默认会以字符串格式输出，跟枚举类型定义不一致，带来理解成本.
+			UseEnumNumbers: true,
+		},
+	}))
+
+	if err := apiv1.RegisterMiniBlogHandler(ctx, gwmux, conn); err != nil {
+		return err
+	}
+
+	log.Infow("Start to listening the incoming requests", "protocol", "http", "addr", s.cfg.HTTPOptions.Addr)
+
+	httpsrv := &http.Server{
+		Addr:    s.cfg.HTTPOptions.Addr,
+		Handler: gwmux,
+	}
+
+	if err := httpsrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
 	return nil
 }
