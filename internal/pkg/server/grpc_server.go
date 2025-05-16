@@ -34,6 +34,7 @@ type GRPCServer struct {
 
 func NewGRPCServer(
 	grpcOptions *genericoptions.GRPCOptions,
+	serverOptions []grpc.ServerOption,
 	registerServer func(grpc.ServiceRegistrar,
 	)) (*GRPCServer, error) {
 
@@ -43,7 +44,7 @@ func NewGRPCServer(
 		return nil, err
 	}
 
-	grpcsrv := grpc.NewServer()
+	grpcsrv := grpc.NewServer(serverOptions...)
 	registerServer(grpcsrv)
 	registerHealthServer(grpcsrv)
 	reflection.Register(grpcsrv)
