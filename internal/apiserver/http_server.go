@@ -40,12 +40,14 @@ func (c *ServerConfig) NewGinServer() server.Server {
 	// 注册 REST API 路由
 	c.InstallRESTAPI(engine)
 
-	return &ginServer{srv: nil}
+	httpsrv := server.NewHTTPServer(c.cfg.HTTPOptions, c.cfg.TLSOptions, engine)
+
+	return &ginServer{srv: httpsrv}
 }
 
 // RunOrDie 启动 Gin 服务器，出错则程序崩溃退出.
 func (s *ginServer) RunOrDie() {
-	select {}
+	s.srv.RunOrDie()
 }
 
 // GracefulStop 优雅停止服务器.
