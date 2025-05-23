@@ -101,16 +101,21 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/tools v0.29.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250115164207-1a7da9e5054f // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/datatypes v1.2.4 // indirect
 	gorm.io/driver/mysql v1.5.7 // indirect
 	gorm.io/driver/postgres v1.5.11 // indirect
 	gorm.io/gorm v1.25.12 // indirect
+	gorm.io/hints v1.1.0 // indirect
+	gorm.io/plugin/dbresolver v1.5.3 // indirect
 	k8s.io/component-base v0.32.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/utils v0.0.0-20241210054802-24370beab758 // indirect
@@ -129,5 +134,6 @@ require (
 	github.com/spf13/viper v1.20.1
 	go.uber.org/automaxprocs v1.6.0
 	go.uber.org/zap v1.27.0
+	gorm.io/gen v0.3.27
 	k8s.io/apimachinery v0.33.0
 )
