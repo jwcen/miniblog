@@ -17,11 +17,32 @@ package biz
 import (
 	postV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/post"
 	userV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/user"
+	"github.com/jwcen/miniblog/internal/apiserver/store"
 )
 
 type IBiz interface {
 	// 获取用户业务接口.
 	UserV1() userV1.UserBiz
 	// 获取帖子业务接口.
-	POSTV1() postV1.PostBiz
+	PostV1() postV1.PostBiz
+}
+
+type biz struct {
+	store store.IStore
+}
+
+var _ IBiz = (*biz)(nil)
+
+func NewBiz(store store.IStore) *biz {
+	return &biz{
+		store: store,
+	}
+}
+
+func (b *biz) UserV1() userV1.UserBiz {
+	return userV1.New(b.store)
+}
+
+func (b *biz) PostV1() postV1.PostBiz {
+	return postV1.New(b.store)
 }

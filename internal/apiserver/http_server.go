@@ -59,10 +59,37 @@ func (c *ServerConfig) InstallRESTAPI(engine *gin.Engine) {
 	InstallGenericAPI(engine)
 
 	// 创建核心业务处理器
-	handler := handler.NewHandler()
+	handler := handler.NewHandler(c.biz)
 
 	// 注册健康检查接口
 	engine.GET("/healthz", handler.Healthz)
+	engine.POST("/login", handler.Login)
+	engine.PUT("/refresh-token", handler.RefreshToken)
+
+	authMiddlewares := []gin.HandlerFunc{}
+
+	v1 := engine.Group("/v1")
+	{
+		userv1 := v1.Group("/users")
+		{
+			userv1.POST("", handler.CreateUser)
+			userv1.Use(authMiddlewares...)
+			userv1.PUT(":userID/change-password", handler.ChangePassword)
+			userv1.PUT(":userID", handler.UpdateUser)
+			userv1.DELETE(":userID", handler.DeleteUser)
+			userv1.GET(":userID", handler.GetUser)
+			userv1.GET("", handler.ListUser)
+		}
+
+		postv1 := v1.Group("/posts", authMiddlewares...)
+		{
+			postv1.POST("", handler.CreatePost)       // 创建博客
+			postv1.PUT(":postID", handler.UpdatePost) // 更新博客
+			postv1.DELETE("", handler.DeletePost)     // 删除博客
+			postv1.GET(":postID", handler.GetPost)    // 查询博客详情
+			postv1.GET("", handler.ListPost)          // 查询博客列表
+		}
+	}
 }
 
 // InstallGenericAPI 注册业务无关的路由，例如 pprof、404 处理等.

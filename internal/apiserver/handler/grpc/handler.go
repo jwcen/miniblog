@@ -15,14 +15,19 @@
 package grpc
 
 import (
+	"github.com/jwcen/miniblog/internal/apiserver/biz"
 	apiv1 "github.com/jwcen/miniblog/pkg/api/apiserver/v1"
 )
 
 // Handler 负责处理博客模块的请求.
 type Handler struct {
 	apiv1.UnimplementedMiniBlogServer
+
+	biz biz.IBiz
 }
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(biz biz.IBiz) *Handler {
+	return &Handler{
+		biz: biz,
+	}
 }
