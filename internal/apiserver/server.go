@@ -85,6 +85,7 @@ type ServerConfig struct {
 func (cfg *Config) NewServerConfig() (*ServerConfig, error) {
 	db, err := cfg.NewDB()
 	if err != nil {
+		log.Errorw("cfg.NewDB() err:", err)
 		return nil, err
 	}
 

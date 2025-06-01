@@ -27,6 +27,7 @@ import (
 	"github.com/jwcen/miniblog/internal/pkg/errno"
 	"github.com/jwcen/miniblog/internal/pkg/known"
 	"github.com/jwcen/miniblog/internal/pkg/log"
+	"github.com/jwcen/miniblog/internal/pkg/rid"
 	apiv1 "github.com/jwcen/miniblog/pkg/api/apiserver/v1"
 	"github.com/jwcen/miniblog/pkg/auth"
 	"github.com/onexstack/onexstack/pkg/store/where"
@@ -122,6 +123,14 @@ func (u *userBiz) Create(ctx context.Context, req *apiv1.CreateUserRequest) (*ap
 		return nil, errno.ErrInvalidArgument
 	}
 
+	// 设置创建时间和更新时间
+	now := time.Now()
+	userM.CreatedAt = now
+	userM.UpdatedAt = now
+
+	// 生成临时 userID，后续会被 AfterCreate 钩子更新
+	userM.UserID = rid.UserID.New(0)
+
 	if err := u.store.User().Create(ctx, &userM); err != nil {
 		return nil, err
 	}
@@ -197,6 +206,7 @@ func (u *userBiz) List(ctx context.Context, req *apiv1.ListUserRequest) (*apiv1.
 
 	// 使用 goroutine 提高接口性能
 	for _, user := range userList {
+		user := user // 创建新的变量以避免闭包问题
 		eg.Go(func() error {
 			select {
 			case <-ctx.Done():
@@ -209,7 +219,7 @@ func (u *userBiz) List(ctx context.Context, req *apiv1.ListUserRequest) (*apiv1.
 
 				converted := conversion.UserModelToUserV1(user)
 				converted.PostCount = count
-				m.Store(user.ID, converted)
+				m.Store(user.UserID, converted) // 使用 UserID 作为 key
 
 				return nil
 			}
@@ -223,8 +233,9 @@ func (u *userBiz) List(ctx context.Context, req *apiv1.ListUserRequest) (*apiv1.
 
 	users := make([]*apiv1.User, 0, len(userList))
 	for _, item := range userList {
-		user, _ := m.Load(item.UserID)
-		users = append(users, user.(*apiv1.User))
+		if user, ok := m.Load(item.UserID); ok { // 使用 UserID 作为 key
+			users = append(users, user.(*apiv1.User))
+		}
 	}
 
 	log.W(ctx).Debugw("Get users from backend storage", "count", len(users))

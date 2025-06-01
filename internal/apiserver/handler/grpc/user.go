@@ -36,22 +36,22 @@ func (h *Handler) ListWithBadPerformance(ctx context.Context, rq *apiv1.ListUser
 	return h.biz.UserV1().ListWithBadPerformance(ctx, rq)
 }
 
-func (h *Handler) Create(ctx context.Context, rq *apiv1.CreateUserRequest) (*apiv1.CreateUserResponse, error) {
+func (h *Handler) CreateUser(ctx context.Context, rq *apiv1.CreateUserRequest) (*apiv1.CreateUserResponse, error) {
 	return h.biz.UserV1().Create(ctx, rq)
 }
 
-func (h *Handler) Update(ctx context.Context, rq *apiv1.UpdateUserRequest) (*apiv1.UpdateUserResponse, error) {
+func (h *Handler) UpdateUser(ctx context.Context, rq *apiv1.UpdateUserRequest) (*apiv1.UpdateUserResponse, error) {
 	return h.biz.UserV1().Update(ctx, rq)
 }
 
-func (h *Handler) Delete(ctx context.Context, rq *apiv1.DeleteUserRequest) (*apiv1.DeleteUserResponse, error) {
+func (h *Handler) DeleteUser(ctx context.Context, rq *apiv1.DeleteUserRequest) (*apiv1.DeleteUserResponse, error) {
 	return h.biz.UserV1().Delete(ctx, rq)
 }
 
-func (h *Handler) Get(ctx context.Context, rq *apiv1.GetUserRequest) (*apiv1.GetUserResponse, error) {
+func (h *Handler) GetUser(ctx context.Context, rq *apiv1.GetUserRequest) (*apiv1.GetUserResponse, error) {
 	return h.biz.UserV1().Get(ctx, rq)
 }
 
-func (h *Handler) List(ctx context.Context, rq *apiv1.ListUserRequest) (*apiv1.ListUserResponse, error) {
+func (h *Handler) ListUser(ctx context.Context, rq *apiv1.ListUserRequest) (*apiv1.ListUserResponse, error) {
 	return h.biz.UserV1().List(ctx, rq)
 }
