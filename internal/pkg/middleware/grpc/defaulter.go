@@ -12,23 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package http
+package grpc
 
 import (
-	"github.com/jwcen/miniblog/internal/apiserver/biz"
-	"github.com/jwcen/miniblog/internal/apiserver/pkg/validation"
+	"context"
+
+	"google.golang.org/grpc"
 )
 
-// Handler 处理博客模块的请求.
-type Handler struct {
-	biz biz.IBiz
-	val *validation.Validator
-}
+// DefaulterInterceptor 是一个 gRPC 拦截器，用于对请求进行默认值设置.
+func DefaulterInterceptor() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (resp any, err error) {
 
-// NewHandler 创建新的 Handler 实例.
-func NewHandler(biz biz.IBiz, val *validation.Validator) *Handler {
-	return &Handler{
-		biz: biz,
-		val: val,
+		if defaulter, ok := req.(interface{ Default() }); ok {
+			defaulter.Default()
+		}
+
+		return handler(ctx, req)
 	}
 }

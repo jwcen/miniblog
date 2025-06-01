@@ -127,6 +127,7 @@ require (
 
 require (
 	github.com/go-kratos/kratos/v2 v2.8.4 // indirect
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/gosuri/uitable v0.0.4
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/onexstack/onexstack v0.0.2

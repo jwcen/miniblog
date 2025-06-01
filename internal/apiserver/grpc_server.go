@@ -25,6 +25,7 @@ import (
 	mw "github.com/jwcen/miniblog/internal/pkg/middleware/grpc"
 	"github.com/jwcen/miniblog/internal/pkg/server"
 	apiv1 "github.com/jwcen/miniblog/pkg/api/apiserver/v1"
+	genericvalidation "github.com/onexstack/onexstack/pkg/validation"
 )
 
 // grpcServer 定义一个 gRPC 服务器.
@@ -49,6 +50,13 @@ func (c *ServerConfig) NewGRPCServerOr() (server.Server, error) {
 	serverOptions := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(
 			mw.RequestIDInterceptor(),
+
+			// Bypass 拦截器，通过所有请求的认证
+			mw.AuthnBypasswInterceptor(),
+			// 为所有请求设置默认值
+			mw.DefaulterInterceptor(),
+			// 数据校验拦截器
+			mw.ValidatorInterceptor(genericvalidation.NewValidator(c.val)),
 		),
 	}
 

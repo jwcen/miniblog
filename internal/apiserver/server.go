@@ -26,6 +26,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/jwcen/miniblog/internal/apiserver/biz"
+	"github.com/jwcen/miniblog/internal/apiserver/pkg/validation"
 	"github.com/jwcen/miniblog/internal/apiserver/store"
 	"github.com/jwcen/miniblog/internal/pkg/contextx"
 	"github.com/jwcen/miniblog/internal/pkg/log"
@@ -76,6 +77,7 @@ type UnionServer struct {
 type ServerConfig struct {
 	cfg *Config
 	biz biz.IBiz
+	val *validation.Validator
 }
 
 // NewServerConfig 创建一个 *ServerConfig 实例.
@@ -91,6 +93,7 @@ func (cfg *Config) NewServerConfig() (*ServerConfig, error) {
 	return &ServerConfig{
 		cfg: cfg,
 		biz: biz.NewBiz(store),
+		val: validation.New(store),
 	}, nil
 }
 

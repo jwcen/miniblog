@@ -59,14 +59,16 @@ func (c *ServerConfig) InstallRESTAPI(engine *gin.Engine) {
 	InstallGenericAPI(engine)
 
 	// 创建核心业务处理器
-	handler := handler.NewHandler(c.biz)
+	handler := handler.NewHandler(c.biz, c.val)
 
 	// 注册健康检查接口
 	engine.GET("/healthz", handler.Healthz)
 	engine.POST("/login", handler.Login)
-	engine.PUT("/refresh-token", handler.RefreshToken)
+	engine.PUT("/refresh-token", mw.AuthnBypasswMiddleware(), handler.RefreshToken)
 
-	authMiddlewares := []gin.HandlerFunc{}
+	authMiddlewares := []gin.HandlerFunc{
+		mw.AuthnBypasswMiddleware(),
+	}
 
 	v1 := engine.Group("/v1")
 	{
