@@ -21,11 +21,13 @@ import (
 	"syscall"
 	"time"
 
+	mw "github.com/jwcen/miniblog/internal/pkg/middleware/gin"
 	genericoptions "github.com/onexstack/onexstack/pkg/options"
 	"github.com/onexstack/onexstack/pkg/store/where"
 	"gorm.io/gorm"
 
 	"github.com/jwcen/miniblog/internal/apiserver/biz"
+	"github.com/jwcen/miniblog/internal/apiserver/model"
 	"github.com/jwcen/miniblog/internal/apiserver/pkg/validation"
 	"github.com/jwcen/miniblog/internal/apiserver/store"
 	"github.com/jwcen/miniblog/internal/pkg/contextx"
@@ -75,9 +77,10 @@ type UnionServer struct {
 
 // ServerConfig 包含服务器的核心依赖和配置.
 type ServerConfig struct {
-	cfg *Config
-	biz biz.IBiz
-	val *validation.Validator
+	cfg       *Config
+	biz       biz.IBiz
+	val       *validation.Validator
+	retriever mw.UserRetriever
 }
 
 // NewServerConfig 创建一个 *ServerConfig 实例.
@@ -92,9 +95,10 @@ func (cfg *Config) NewServerConfig() (*ServerConfig, error) {
 	store := store.NewStore(db)
 
 	return &ServerConfig{
-		cfg: cfg,
-		biz: biz.NewBiz(store),
-		val: validation.New(store),
+		cfg:       cfg,
+		biz:       biz.NewBiz(store),
+		val:       validation.New(store),
+		retriever: &UserRetriever{store},
 	}, nil
 }
 
@@ -158,4 +162,13 @@ func (s *UnionServer) Run() error {
 	log.Infow("Server exited")
 
 	return nil
+}
+
+// UserRetriever 定义一个用户数据获取器. 用来获取用户信息.
+type UserRetriever struct {
+	store store.IStore
+}
+
+func (u *UserRetriever) GetUser(ctx context.Context, userID string) (*model.UserM, error) {
+	return u.store.User().Get(ctx, where.F("userID", userID))
 }

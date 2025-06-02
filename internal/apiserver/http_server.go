@@ -64,10 +64,10 @@ func (c *ServerConfig) InstallRESTAPI(engine *gin.Engine) {
 	// 注册健康检查接口
 	engine.GET("/healthz", handler.Healthz)
 	engine.POST("/login", handler.Login)
-	engine.PUT("/refresh-token", mw.AuthnBypasswMiddleware(), handler.RefreshToken)
+	engine.PUT("/refresh-token", mw.AuthnMiddleware(c.retriever), handler.RefreshToken)
 
 	authMiddlewares := []gin.HandlerFunc{
-		mw.AuthnBypasswMiddleware(),
+		mw.AuthnMiddleware(c.retriever),
 	}
 
 	v1 := engine.Group("/v1")

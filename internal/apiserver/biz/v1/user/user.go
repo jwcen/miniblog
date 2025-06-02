@@ -30,6 +30,7 @@ import (
 	"github.com/jwcen/miniblog/internal/pkg/rid"
 	apiv1 "github.com/jwcen/miniblog/pkg/api/apiserver/v1"
 	"github.com/jwcen/miniblog/pkg/auth"
+	"github.com/jwcen/miniblog/pkg/token"
 	"github.com/onexstack/onexstack/pkg/store/where"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -77,19 +78,32 @@ func (u *userBiz) Login(ctx context.Context, req *apiv1.LoginRequest) (*apiv1.Lo
 		return nil, errno.ErrPasswordInvalid
 	}
 
-	// TODO：实现 Token 签发逻辑
+	// 实现 Token 签发逻辑
+	tokenStr, expireAt, err := token.Sign(userM.UserID)
+	if err != nil {
+		log.W(ctx).Errorw("Failed to sign token", "err", err)
+		return nil, errno.ErrSignToken
+	}
 
 	return &apiv1.LoginResponse{
-		Token:    "<placeholder>",
-		ExpireAt: timestamppb.New(time.Now().Add(2 * time.Hour)),
+		Token:    tokenStr,
+		ExpireAt: timestamppb.New(expireAt),
 	}, nil
 }
 
 // RefreshToken 用于刷新用户的身份验证令牌.
 // 当用户的令牌即将过期时，可以调用此方法生成一个新的令牌.
 func (u *userBiz) RefreshToken(ctx context.Context, req *apiv1.RefreshTokenRequest) (*apiv1.RefreshTokenResponse, error) {
-	// TODO：实现 Token 签发逻辑
-	return &apiv1.RefreshTokenResponse{Token: "<placeholder>", ExpireAt: timestamppb.New(time.Now().Add(2 * time.Hour))}, nil
+	tokenStr, expireAt, err := token.Sign(contextx.UserID(ctx))
+	if err != nil {
+		log.W(ctx).Errorw("Failed to sign token", "err", err)
+		return nil, errno.ErrSignToken
+	}
+
+	return &apiv1.RefreshTokenResponse{
+		Token:    tokenStr,
+		ExpireAt: timestamppb.New(expireAt),
+	}, nil
 }
 
 func (u *userBiz) ChangePassword(ctx context.Context, req *apiv1.ChangePasswordRequest) (*apiv1.ChangePasswordResponse, error) {
