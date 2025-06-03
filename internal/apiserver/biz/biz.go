@@ -18,6 +18,7 @@ import (
 	postV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/post"
 	userV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/user"
 	"github.com/jwcen/miniblog/internal/apiserver/store"
+	"github.com/jwcen/miniblog/pkg/auth"
 )
 
 type IBiz interface {
@@ -29,18 +30,20 @@ type IBiz interface {
 
 type biz struct {
 	store store.IStore
+	authz *auth.Authz
 }
 
 var _ IBiz = (*biz)(nil)
 
-func NewBiz(store store.IStore) *biz {
+func NewBiz(store store.IStore, authz *auth.Authz) *biz {
 	return &biz{
 		store: store,
+		authz: authz,
 	}
 }
 
 func (b *biz) UserV1() userV1.UserBiz {
-	return userV1.New(b.store)
+	return userV1.New(b.store, b.authz)
 }
 
 func (b *biz) PostV1() postV1.PostBiz {

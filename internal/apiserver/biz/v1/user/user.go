@@ -56,13 +56,15 @@ type UserExpansion interface {
 
 type userBiz struct {
 	store store.IStore
+	authz *auth.Authz
 }
 
 var _ UserBiz = (*userBiz)(nil)
 
-func New(store store.IStore) *userBiz {
+func New(store store.IStore, authz *auth.Authz) *userBiz {
 	return &userBiz{
 		store: store,
+		authz: authz,
 	}
 }
 
@@ -149,6 +151,11 @@ func (u *userBiz) Create(ctx context.Context, req *apiv1.CreateUserRequest) (*ap
 		return nil, err
 	}
 
+	if _, err := u.authz.AddGroupingPolicy(userM.UserID, known.RoleUser); err != nil {
+		log.W(ctx).Errorw("Failed to add grouping policy for user", "user", userM.UserID, "role", known.RoleUser)
+		return nil, errno.ErrAddRole.WithMessage(err.Error())
+	}
+
 	return &apiv1.CreateUserResponse{
 		UserID: userM.UserID,
 	}, nil
@@ -185,6 +192,11 @@ func (u *userBiz) Delete(ctx context.Context, req *apiv1.DeleteUserRequest) (*ap
 	// 所以这里不用 where.T()，因为 where.T() 会查询 `root` 用户自己
 	if err := u.store.User().Delete(ctx, where.F("userID", req.GetUserID())); err != nil {
 		return nil, err
+	}
+
+	if _, err := u.authz.RemoveGroupingPolicy(req.GetUserID(), known.RoleUser); err != nil {
+		log.W(ctx).Errorw("Failed to remove grouping policy for user", "user", req.GetUserID(), "role", known.RoleUser)
+		return nil, errno.ErrRemoveRole.WithMessage(err.Error())
 	}
 
 	return &apiv1.DeleteUserResponse{}, nil

@@ -68,6 +68,7 @@ func (c *ServerConfig) InstallRESTAPI(engine *gin.Engine) {
 
 	authMiddlewares := []gin.HandlerFunc{
 		mw.AuthnMiddleware(c.retriever),
+		mw.AuthzMiddleware(c.authz),
 	}
 
 	v1 := engine.Group("/v1")
