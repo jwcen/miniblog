@@ -38,7 +38,10 @@ type ServerOptions struct {
 	Expiration time.Duration `json:"expiration" mapstructure:"expiration"`
 	// GRPCOptions 包含 gRPC 配置选项.
 	GRPCOptions *genericoptions.GRPCOptions `json:"grpc" mapstructure:"grpc"`
+	// HTTPOptions 包含 HTTP 配置选项.
 	HTTPOptions *genericoptions.HTTPOptions `json:"http" mapstructure:"http"`
+	// TLSOptions 包含 TLS 配置选项.
+	TLSOptions *genericoptions.TLSOptions `json:"tls" mapstructure:"tls"`
 	// MySQLOptions 包含 MySQL 配置选项.
 	MySQLOptions *genericoptions.MySQLOptions `json:"mysql" mapstructure:"mysql"`
 }
@@ -51,6 +54,7 @@ func NewServerOptions() *ServerOptions {
 		Expiration:   2 * time.Hour,
 		GRPCOptions:  genericoptions.NewGRPCOptions(),
 		HTTPOptions:  genericoptions.NewHTTPOptions(),
+		TLSOptions: genericoptions.NewTLSOptions(),
 		MySQLOptions: genericoptions.NewMySQLOptions(),
 	}
 
@@ -69,6 +73,7 @@ func (o *ServerOptions) AddFlags(fs *pflag.FlagSet) {
 
 	o.GRPCOptions.AddFlags(fs)
 	o.HTTPOptions.AddFlags(fs)
+	o.TLSOptions.AddFlags(fs)
 	o.MySQLOptions.AddFlags(fs)
 }
 
@@ -88,6 +93,7 @@ func (o *ServerOptions) Validate() error {
 
 	// 校验子选项
 	errs = append(errs, o.HTTPOptions.Validate()...)
+	errs = append(errs, o.TLSOptions.Validate()...)
 	errs = append(errs, o.MySQLOptions.Validate()...)
 
 	// 如果是 gRPC 或 gRPC-Gateway 模式，校验 gRPC 配置
@@ -107,6 +113,7 @@ func (o *ServerOptions) Config() (*apiserver.Config, error) {
 		Expiration:   o.Expiration,
 		GRPCOptions:  o.GRPCOptions,
 		HTTPOptions:  o.HTTPOptions,
+		TLSOptions: o.TLSOptions,
 		MySQLOptions: o.MySQLOptions,
 	}, nil
 }

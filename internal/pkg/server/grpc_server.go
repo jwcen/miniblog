@@ -20,6 +20,7 @@ import (
 
 	genericoptions "github.com/onexstack/onexstack/pkg/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
@@ -35,6 +36,7 @@ type GRPCServer struct {
 func NewGRPCServer(
 	grpcOptions *genericoptions.GRPCOptions,
 	serverOptions []grpc.ServerOption,
+	tlsOptions *genericoptions.TLSOptions,
 	registerServer func(grpc.ServiceRegistrar,
 	)) (*GRPCServer, error) {
 
@@ -42,6 +44,11 @@ func NewGRPCServer(
 	if err != nil {
 		log.Errorw("Failed to listen", "err", err)
 		return nil, err
+	}
+
+	if tlsOptions != nil && tlsOptions.UseTLS {
+		tlsConfig := tlsOptions.MustTLSConfig()
+		serverOptions = append(serverOptions, grpc.Creds(credentials.NewTLS(tlsConfig)))
 	}
 
 	grpcsrv := grpc.NewServer(serverOptions...)
