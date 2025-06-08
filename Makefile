@@ -40,7 +40,7 @@ GO_LDFLAGS += \
 
 # 定义 Makefile all 伪目标，执行 `make` 时，会默认会执行 all 伪目标
 .PHONY: all
-all: tidy format build add-copyright
+all: tidy format lint build add-copyright
 
 # ==============================================================================
 # 定义其他需要的伪目标
@@ -103,3 +103,23 @@ ca: # 生成 CA 文件.
 	@openssl x509 -days 365 -sha256 -req -CA $(OUTPUT_DIR)/cert/ca.crt -CAkey $(OUTPUT_DIR)/cert/ca.key \
 		-CAcreateserial -in $(OUTPUT_DIR)/cert/server.csr -out $(OUTPUT_DIR)/cert/server.crt -extensions v3_req \
 		-extfile <(printf "[v3_req]\nsubjectAltName=DNS:localhost,IP:127.0.0.1")
+
+.PHONY: test
+test: # 执行单元测试.
+	@echo "===========> Running unit tests"
+	@mkdir -p $(OUTPUT_DIR)
+	@go test -race -cover \
+		-coverprofile=$(OUTPUT_DIR)/coverage.out \
+		-timeout=10m -shuffle=on -short \
+		-v `go list ./...|egrep -v 'tools|vendor|third_party'`
+
+.PHONY: cover
+cover: test ## 执行单元测试，并校验覆盖率阈值.
+	@echo "===========> Running code coverage tests"
+	@go tool cover -func=$(OUTPUT_DIR)/coverage.out | awk -v target=$(COVERAGE) -f $(PROJ_ROOT_DIR)/scripts/coverage.awk
+
+.PHONY: lint
+lint: # 执行静态代码检查.
+	@echo "===========> Running golangci to lint source codes"
+	@echo "golangci-lint run -c $(PROJ_ROOT_DIR)/.golangci.yaml $(PROJ_ROOT_DIR)/..."
+	@golangci-lint run -c $(PROJ_ROOT_DIR)/.golangci.yaml $(PROJ_ROOT_DIR)/...

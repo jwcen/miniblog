@@ -15,11 +15,14 @@
 package biz
 
 import (
+	"github.com/google/wire"
 	postV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/post"
 	userV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/user"
 	"github.com/jwcen/miniblog/internal/apiserver/store"
 	"github.com/jwcen/miniblog/pkg/auth"
 )
+
+var ProviderSet = wire.NewSet(NewBiz, wire.Bind(new(IBiz), new(*biz)))
 
 type IBiz interface {
 	// 获取用户业务接口.

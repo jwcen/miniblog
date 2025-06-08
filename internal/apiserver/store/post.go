@@ -17,20 +17,12 @@ package store
 import (
 	"context"
 	"errors"
-	"sync"
 
 	"github.com/jwcen/miniblog/internal/apiserver/model"
 	"github.com/jwcen/miniblog/internal/pkg/errno"
 	"github.com/jwcen/miniblog/internal/pkg/log"
 	"github.com/onexstack/onexstack/pkg/store/where"
 	"gorm.io/gorm"
-)
-
-var (
-	once sync.Once
-
-	// 全局变量，方便其它包直接调用已初始化好的 datastore 实例.
-	S *datastore
 )
 
 // PostStore 定义了 post 模块在 store 层所实现的方法.

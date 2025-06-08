@@ -21,8 +21,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jwcen/miniblog/internal/pkg/known"
 	mw "github.com/jwcen/miniblog/internal/pkg/middleware/gin"
 	"github.com/jwcen/miniblog/pkg/auth"
+	"github.com/jwcen/miniblog/pkg/token"
 	genericoptions "github.com/onexstack/onexstack/pkg/options"
 	"github.com/onexstack/onexstack/pkg/store/where"
 	"gorm.io/gorm"
@@ -122,28 +124,15 @@ func (cfg *Config) NewUnionServer() (*UnionServer, error) {
 		return contextx.UserID(ctx)
 	})
 
-	// 创建服务配置，这些配置可用来创建服务器
-	serverConfig, err := cfg.NewServerConfig()
+	token.Init(cfg.JWTKey, known.XUserID, cfg.Expiration)
+	log.Infow("Initializing federation server", "server-mode", cfg.ServerMode)
+
+	srv, err := InitializeWebServer(cfg)
 	if err != nil {
 		return nil, err
 	}
 
 	log.Infow("Initializing federation server", "server-mode", cfg.ServerMode)
-
-	// 根据服务模式创建对应的服务实例
-	// 实际企业开发中，可以根据需要只选择一种服务器模式.
-	// 这里为了方便展示，通过 cfg.ServerMode 同时支持了 Gin 和 GRPC 2 种服务器模式.
-	// 默认为 gRPC 服务器模式.
-	var srv server.Server
-	switch cfg.ServerMode {
-	case GinServerMode:
-		srv, err = serverConfig.NewGinServer(), nil
-	default:
-		srv, err = serverConfig.NewGRPCServerOr()
-	}
-	if err != nil {
-		return nil, err
-	}
 
 	return &UnionServer{srv: srv}, nil
 }
@@ -179,4 +168,22 @@ type UserRetriever struct {
 
 func (u *UserRetriever) GetUser(ctx context.Context, userID string) (*model.UserM, error) {
 	return u.store.User().Get(ctx, where.F("userID", userID))
+}
+
+// ProvideDB 根据配置提供一个数据库实例。
+func ProvideDB(cfg *Config) (*gorm.DB, error) {
+	return cfg.NewDB()
+}
+
+func NewWebServer(serverMode string, serverConfig *ServerConfig) (server.Server, error) {
+	// 根据服务模式创建对应的服务实例
+	// 实际企业开发中，可以根据需要只选择一种服务器模式.
+	// 这里为了方便展示，通过 cfg.ServerMode 同时支持了 Gin 和 GRPC 2 种服务器模式.
+	// 默认为 gRPC 服务器模式.
+	switch serverMode {
+	case GinServerMode:
+		return serverConfig.NewGinServer(), nil
+	default:
+		return serverConfig.NewGRPCServerOr()
+	}
 }
