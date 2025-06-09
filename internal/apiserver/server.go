@@ -23,10 +23,10 @@ import (
 
 	"github.com/jwcen/miniblog/internal/pkg/known"
 	mw "github.com/jwcen/miniblog/internal/pkg/middleware/gin"
-	"github.com/jwcen/miniblog/pkg/auth"
-	"github.com/jwcen/miniblog/pkg/token"
+	"github.com/onexstack/onexstack/pkg/authz"
 	genericoptions "github.com/onexstack/onexstack/pkg/options"
 	"github.com/onexstack/onexstack/pkg/store/where"
+	"github.com/onexstack/onexstack/pkg/token"
 	"gorm.io/gorm"
 
 	"github.com/jwcen/miniblog/internal/apiserver/biz"
@@ -84,7 +84,7 @@ type ServerConfig struct {
 	biz       biz.IBiz
 	val       *validation.Validator
 	retriever mw.UserRetriever
-	authz     *auth.Authz
+	authz     *authz.Authz
 }
 
 // NewServerConfig 创建一个 *ServerConfig 实例.
@@ -98,7 +98,7 @@ func (cfg *Config) NewServerConfig() (*ServerConfig, error) {
 
 	store := store.NewStore(db)
 
-	authz, err := auth.NewAuthz(store.DB(context.TODO()))
+	authz, err := authz.NewAuthz(store.DB(context.TODO()))
 	if err != nil {
 		return nil, err
 	}

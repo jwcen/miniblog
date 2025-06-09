@@ -11,7 +11,7 @@ import (
 	"github.com/jwcen/miniblog/internal/apiserver/pkg/validation"
 	"github.com/jwcen/miniblog/internal/apiserver/store"
 	"github.com/jwcen/miniblog/internal/pkg/server"
-	"github.com/jwcen/miniblog/pkg/auth"
+	auth "github.com/onexstack/onexstack/pkg/authz"
 )
 
 // Injectors from wire.go:

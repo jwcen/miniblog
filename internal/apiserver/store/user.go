@@ -16,13 +16,10 @@ package store
 
 import (
 	"context"
-	"errors"
 
 	"github.com/jwcen/miniblog/internal/apiserver/model"
-	"github.com/jwcen/miniblog/internal/pkg/errno"
-	"github.com/jwcen/miniblog/internal/pkg/log"
+	genericstore "github.com/onexstack/onexstack/pkg/store"
 	"github.com/onexstack/onexstack/pkg/store/where"
-	"gorm.io/gorm"
 )
 
 // UserStore 定义了 user 模块在 store 层所实现的方法.
@@ -40,65 +37,13 @@ type UserStore interface {
 type UserExpansion interface{}
 
 type userStore struct {
-	store *datastore
+	*genericstore.Store[model.UserM]
 }
 
 var _ UserStore = (*userStore)(nil)
 
 func newUserStore(store *datastore) *userStore {
-	return &userStore{store}
-}
-
-func (s *userStore) Create(ctx context.Context, user *model.UserM) error {
-	if err := s.store.DB(ctx).Create(&user).Error; err != nil {
-		log.Errorw("Failed to insert user into database", "err", err, "user", user)
-		return errno.ErrDBWrite.WithMessage(err.Error())
+	return &userStore{
+		Store: genericstore.NewStore[model.UserM](store, NewLogger()),
 	}
-
-	return nil
-}
-
-func (s *userStore) Update(ctx context.Context, obj *model.UserM) error {
-	if err := s.store.DB(ctx).Save(obj).Error; err != nil {
-		log.Errorw("Failed to update user in database", "err", err, "user", obj)
-		return errno.ErrDBWrite.WithMessage(err.Error())
-	}
-
-	return nil
-}
-
-// Delete 根据条件删除用户记录.
-func (s *userStore) Delete(ctx context.Context, opts *where.Options) error {
-	err := s.store.DB(ctx, opts).Delete(new(model.UserM)).Error
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		log.Errorw("Failed to delete user from database", "err", err, "conditions", opts)
-		return errno.ErrDBWrite.WithMessage(err.Error())
-	}
-
-	return nil
-}
-
-// Get 根据条件查询用户记录.
-func (s *userStore) Get(ctx context.Context, opts *where.Options) (*model.UserM, error) {
-	var obj model.UserM
-	if err := s.store.DB(ctx, opts).First(&obj).Error; err != nil {
-		log.Errorw("Failed to retrieve user from database", "err", err, "conditions", opts)
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errno.ErrUserNotFound
-		}
-		return nil, errno.ErrDBRead.WithMessage(err.Error())
-	}
-
-	return &obj, nil
-}
-
-// List 返回用户列表和总数.
-// nolint: nonamedreturns
-func (s *userStore) List(ctx context.Context, opts *where.Options) (count int64, ret []*model.UserM, err error) {
-	err = s.store.DB(ctx, opts).Order("id desc").Find(&ret).Offset(-1).Limit(-1).Count(&count).Error
-	if err != nil {
-		log.Errorw("Failed to list users from database", "err", err, "conditions", opts)
-		err = errno.ErrDBRead.WithMessage(err.Error())
-	}
-	return
 }

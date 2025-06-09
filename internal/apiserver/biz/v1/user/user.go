@@ -29,9 +29,10 @@ import (
 	"github.com/jwcen/miniblog/internal/pkg/log"
 	"github.com/jwcen/miniblog/internal/pkg/rid"
 	apiv1 "github.com/jwcen/miniblog/pkg/api/apiserver/v1"
-	"github.com/jwcen/miniblog/pkg/auth"
-	"github.com/jwcen/miniblog/pkg/token"
+	"github.com/onexstack/onexstack/pkg/authz"
+	"github.com/onexstack/onexstack/pkg/authn"
 	"github.com/onexstack/onexstack/pkg/store/where"
+	"github.com/onexstack/onexstack/pkg/token"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -56,12 +57,12 @@ type UserExpansion interface {
 
 type userBiz struct {
 	store store.IStore
-	authz *auth.Authz
+	authz *authz.Authz
 }
 
 var _ UserBiz = (*userBiz)(nil)
 
-func New(store store.IStore, authz *auth.Authz) *userBiz {
+func New(store store.IStore, authz *authz.Authz) *userBiz {
 	return &userBiz{
 		store: store,
 		authz: authz,
@@ -75,7 +76,7 @@ func (u *userBiz) Login(ctx context.Context, req *apiv1.LoginRequest) (*apiv1.Lo
 		return nil, errno.ErrUserNotFound
 	}
 
-	if err := auth.Compare(userM.Password, req.GetPassword()); err != nil {
+	if err := authn.Compare(userM.Password, req.GetPassword()); err != nil {
 		log.W(ctx).Errorw("Failed to compare password", "err", err)
 		return nil, errno.ErrPasswordInvalid
 	}
@@ -114,12 +115,12 @@ func (u *userBiz) ChangePassword(ctx context.Context, req *apiv1.ChangePasswordR
 		return nil, err
 	}
 
-	if err := auth.Compare(userM.Password, req.GetOldPassword()); err != nil {
+	if err := authn.Compare(userM.Password, req.GetOldPassword()); err != nil {
 		log.W(ctx).Errorw("Failed to compare password", "err", err)
 		return nil, errno.ErrPasswordInvalid
 	}
 
-	userM.Password, _ = auth.Encrypt(req.GetNewPassword())
+	userM.Password, _ = authn.Encrypt(req.GetNewPassword())
 	if err := u.store.User().Update(ctx, userM); err != nil {
 		return nil, err
 	}

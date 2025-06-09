@@ -8,7 +8,7 @@ import (
 	"github.com/jwcen/miniblog/internal/pkg/errno"
 	"github.com/jwcen/miniblog/internal/pkg/known"
 	"github.com/jwcen/miniblog/internal/pkg/log"
-	"github.com/jwcen/miniblog/pkg/token"
+	"github.com/onexstack/onexstack/pkg/token"
 	"google.golang.org/grpc"
 )
 

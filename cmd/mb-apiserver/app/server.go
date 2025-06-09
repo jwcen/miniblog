@@ -12,7 +12,7 @@ import (
 
 	"github.com/jwcen/miniblog/cmd/mb-apiserver/app/options"
 	"github.com/jwcen/miniblog/internal/pkg/log"
-	"github.com/jwcen/miniblog/pkg/version"
+	"github.com/onexstack/onexstack/pkg/version"
 )
 
 var configFile string // 配置文件路径

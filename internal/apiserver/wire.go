@@ -10,7 +10,7 @@ import (
 	"github.com/jwcen/miniblog/internal/apiserver/store"
 	ginmw "github.com/jwcen/miniblog/internal/pkg/middleware/gin"
 	"github.com/jwcen/miniblog/internal/pkg/server"
-	"github.com/jwcen/miniblog/pkg/auth"
+	"github.com/onexstack/onexstack/pkg/authn"
 )
 
 func InitializeWebServer(*Config) (server.Server, error) {

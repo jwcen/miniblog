@@ -19,7 +19,7 @@ import (
 	postV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/post"
 	userV1 "github.com/jwcen/miniblog/internal/apiserver/biz/v1/user"
 	"github.com/jwcen/miniblog/internal/apiserver/store"
-	"github.com/jwcen/miniblog/pkg/auth"
+	auth "github.com/onexstack/onexstack/pkg/authz"
 )
 
 var ProviderSet = wire.NewSet(NewBiz, wire.Bind(new(IBiz), new(*biz)))

@@ -8,8 +8,8 @@ import (
 	"github.com/jwcen/miniblog/internal/pkg/contextx"
 	"github.com/jwcen/miniblog/internal/pkg/errno"
 	"github.com/jwcen/miniblog/internal/pkg/log"
-	"github.com/jwcen/miniblog/pkg/token"
 	"github.com/onexstack/onexstack/pkg/core"
+	"github.com/onexstack/onexstack/pkg/token"
 )
 
 type UserRetriever interface {
@@ -40,7 +40,7 @@ func AuthnMiddleware(retriever UserRetriever) gin.HandlerFunc {
 		ctx := contextx.WithUserID(c.Request.Context(), user.UserID)
 		ctx = contextx.WithUsername(ctx, user.Username)
 		c.Request = c.Request.WithContext(ctx)
-		
+
 		c.Next()
 	}
 }
