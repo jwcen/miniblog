@@ -44,6 +44,8 @@ type ServerOptions struct {
 	TLSOptions *genericoptions.TLSOptions `json:"tls" mapstructure:"tls"`
 	// MySQLOptions 包含 MySQL 配置选项.
 	MySQLOptions *genericoptions.MySQLOptions `json:"mysql" mapstructure:"mysql"`
+	// EnableMemoryStore 指示是否启用内存数据库（用于测试或开发环境）.
+	EnableMemoryStore bool `json:"enable-memory-store" mapstructure:"enable-memory-store"`
 }
 
 // NewServerOptions 创建带有默认值的 ServerOptions 实例.

@@ -113,7 +113,63 @@ func (cfg *Config) NewServerConfig() (*ServerConfig, error) {
 }
 
 func (cfg *Config) NewDB() (*gorm.DB, error) {
-	return cfg.MySQLOptions.NewDB()
+	if !cfg.EnableMemoryStore {
+		log.Infow("Initializing database connection", "type", "mysql", "addr", cfg.MySQLOptions.Addr)
+        return cfg.MySQLOptions.NewDB()
+	}
+
+	log.Infow("Initializing database connection", "type", "memory", "engine", "SQLite")
+
+	// 使用SQLite内存模式配置数据库
+    // ?cache=shared 用于设置 SQLite 的缓存模式为 共享缓存模式 (shared)。
+    // 默认情况下，SQLite 的每个数据库连接拥有自己的独立缓存，这种模式称为 专用缓存 (private)。
+    // 使用 共享缓存模式 (shared) 后，不同连接可以共享同一个内存中的数据库和缓存。
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+    if err != nil {
+        log.Errorw("Failed to create database connection", "err", err)
+        return nil, err
+    }
+
+	// 自动迁移数据库结构
+    if err := db.AutoMigrate(&model.UserM{}, &model.PostM{}, &model.CasbinRuleM{}); err != nil {
+        log.Errorw("Failed to migrate database schema", "err", err)
+        return nil, err
+    }
+
+	// 插入 casbin_rule 表记录
+    adminR, userR := "role::admin", "role::user"
+    casbinRules := []model.CasbinRuleM{
+        {PType: ptr.To("g"), V0: ptr.To("user-000000"), V1: &adminR},
+        {PType: ptr.To("p"), V0: &adminR, V1: ptr.To("*"), V2: ptr.To("*"), V3: ptr.To("allow")},
+        {PType: ptr.To("p"), V0: &userR, V1: ptr.To("/v1.MiniBlog/DeleteUser"), V2: ptr.To("CALL"), V3: ptr.To("deny")},
+        {PType: ptr.To("p"), V0: &userR, V1: ptr.To("/v1.MiniBlog/ListUser"), V2: ptr.To("CALL"), V3: ptr.To("deny")},
+        {PType: ptr.To("p"), V0: &userR, V1: ptr.To("/v1/users"), V2: ptr.To("GET"), V3: ptr.To("deny")},
+        {PType: ptr.To("p"), V0: &userR, V1: ptr.To("/v1/users/*"), V2: ptr.To("DELETE"), V3: ptr.To("deny")},
+    }
+
+    if err := db.Create(&casbinRules).Error; err != nil {
+        log.Fatalw("Failed to insert casbin_rule records", "err", err)
+        return nil, err
+    }
+
+    // 插入默认用户（root用户）
+    user := model.UserM{
+        UserID:    "user-000000",
+        Username:  "root",
+        Password:  "miniblog1234",
+        Nickname:  "administrator",
+        Email:     "colin404@foxmail.com",
+        Phone:     "18110000000",
+        CreatedAt: time.Now(),
+        UpdatedAt: time.Now(),
+    }
+
+    if err := db.Create(&user).Error; err != nil {
+        log.Fatalw("Failed to insert default root user", "err", err)
+        return nil, err
+    }
+
+    return db, nil
 }
 
 // NewUnionServer 根据配置创建联合服务器.
