@@ -235,7 +235,7 @@ linters-settings:
   goimports:
     # put imports beginning with prefix after 3rd-party packages;
     # it's a comma-separated list of prefixes
-    local-prefixes: github.com/onexstack/miniblog
+    local-prefixes: github.com/jwcen/miniblog
   golint:
     # minimal confidence for issues, default is 0.8
     min-confidence: 0.9
@@ -444,11 +444,11 @@ linters-settings:
       # see https://github.com/julz/importas#use-regular-expression for details
       - pkg: knative.dev/serving/pkg/apis/(\w+)/(v[\w\d]+)
         alias: $1$2
-      - pkg: github.com/onexstack/miniblog/pkg/api/apiserver/v1
+      - pkg: github.com/jwcen/miniblog/pkg/api/apiserver/v1
         alias: apiv1
-      - pkg: github.com/onexstack/miniblog/internal/apiserver/biz/v1/post
+      - pkg: github.com/jwcen/miniblog/internal/apiserver/biz/v1/post
         alias: postv1
-      - pkg: github.com/onexstack/miniblog/internal/apiserver/biz/v1/user
+      - pkg: github.com/jwcen/miniblog/internal/apiserver/biz/v1/user
         alias: userv1
       - pkg: github.com/onexstack/onex/pkg/options
         alias: genericoptions

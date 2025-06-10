@@ -72,7 +72,8 @@ func (o *ServerOptions) AddFlags(fs *pflag.FlagSet) {
 	// 绑定 JWT Token 的过期时间选项到命令行标志。
 	// 参数名称为 `--expiration`，默认值为 o.Expiration
 	fs.DurationVar(&o.Expiration, "expiration", o.Expiration, "The expiration duration of JWT tokens.")
-
+	fs.BoolVar(&o.EnableMemoryStore, "enable-memory-store", o.EnableMemoryStore, "Enable in-memory database (useful for testing or development).")
+	
 	o.GRPCOptions.AddFlags(fs)
 	o.HTTPOptions.AddFlags(fs)
 	o.TLSOptions.AddFlags(fs)
@@ -115,7 +116,8 @@ func (o *ServerOptions) Config() (*apiserver.Config, error) {
 		Expiration:   o.Expiration,
 		GRPCOptions:  o.GRPCOptions,
 		HTTPOptions:  o.HTTPOptions,
-		TLSOptions: o.TLSOptions,
+		TLSOptions:   o.TLSOptions,
 		MySQLOptions: o.MySQLOptions,
+		EnableMemoryStore: o.EnableMemoryStore,
 	}, nil
 }

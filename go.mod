@@ -29,8 +29,9 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20250603155806-513f23925822
 	google.golang.org/grpc v1.73.0
 	google.golang.org/protobuf v1.36.6
-	gorm.io/gen v0.3.27
-	gorm.io/gorm v1.30.0
+	gorm.io/driver/sqlite v1.4.3
+	gorm.io/gen v0.3.25
+	gorm.io/gorm v1.25.12
 	k8s.io/apimachinery v0.33.1
 	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
 )
@@ -87,13 +88,14 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mattn/go-sqlite3 v1.14.15 // indirect
 	github.com/microsoft/go-mssqldb v1.6.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
-	github.com/pierrec/lz4/v4 v4.1.15 // indirect
+	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/prometheus/client_golang v1.20.4 // indirect
 	github.com/prometheus/client_model v0.6.2 // indirect

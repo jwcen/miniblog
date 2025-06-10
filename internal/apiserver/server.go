@@ -28,6 +28,8 @@ import (
 	"github.com/onexstack/onexstack/pkg/store/where"
 	"github.com/onexstack/onexstack/pkg/token"
 	"gorm.io/gorm"
+	"gorm.io/driver/sqlite"
+	"k8s.io/utils/ptr"
 
 	"github.com/jwcen/miniblog/internal/apiserver/biz"
 	"github.com/jwcen/miniblog/internal/apiserver/model"
@@ -62,6 +64,7 @@ type Config struct {
 	HTTPOptions  *genericoptions.HTTPOptions
 	TLSOptions   *genericoptions.TLSOptions
 	MySQLOptions *genericoptions.MySQLOptions
+	EnableMemoryStore bool
 }
 
 // UnionServer 定义一个联合服务器. 根据 ServerMode 决定要启动的服务器类型.
@@ -181,7 +184,8 @@ func (cfg *Config) NewUnionServer() (*UnionServer, error) {
 	})
 
 	token.Init(cfg.JWTKey, known.XUserID, cfg.Expiration)
-	log.Infow("Initializing federation server", "server-mode", cfg.ServerMode)
+	
+	log.Infow("Initializing federation server", "server-mode", cfg.ServerMode, "enable-memory-store", cfg.EnableMemoryStore)
 
 	srv, err := InitializeWebServer(cfg)
 	if err != nil {
